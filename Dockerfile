@@ -2,6 +2,6 @@ FROM openjdk:11
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 
-ARG JAR_FILE=./build/libs/*.jar
+ARG JAR_FILE=./build/libs/*fix.jar
 COPY ${JAR_FILE} ./app.jar
 ENTRYPOINT ["java","-jar","-Dspring.profiles.active=release", "-Duser.timezone=Asia/Seoul","/app.jar"]

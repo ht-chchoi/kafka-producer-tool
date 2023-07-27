@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.ht"
-version = "0.0.2"
+version = "fix"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
