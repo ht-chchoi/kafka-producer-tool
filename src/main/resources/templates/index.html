@@ -66,23 +66,23 @@
     }
 
     function sendMessage() {
-        const body = {}
-        if (!document.getElementById("targetName").value) {
+        let body = {}
+        if (document.getElementById("targetName").value) {
             if (document.getElementById("targetName").value !== "") {
                 body["name"] = document.getElementById("targetName").value
             }
         }
-        if (!document.getElementById("topic").value) {
+        if (document.getElementById("topic").value) {
             if (document.getElementById("topic").value !== "") {
                 body["topic"] = document.getElementById("topic").value
             }
         }
-        if (!document.getElementById("sendKey").value) {
+        if (document.getElementById("sendKey").value) {
             if (document.getElementById("sendKey").value !== "") {
                 body["key"] = document.getElementById("sendKey").value
             }
         }
-        if (!document.getElementById("sendValue").value) {
+        if (document.getElementById("sendValue").value) {
             if (document.getElementById("sendValue").value) {
                 body["value"] = document.getElementById("sendValue").value
             }

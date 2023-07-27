@@ -57,8 +57,6 @@ class ProducerManager {
             throw RuntimeException("No Producer Found")
         }
         val recordMetadata = this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
-
-        println()
     }
 }
 
