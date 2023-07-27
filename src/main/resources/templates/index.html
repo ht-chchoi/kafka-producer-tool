@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="kor">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+</head>
+<body>
+<h1>Kafka Producer Test Tool</h1>
+<div id="main">
+    <div id="senders">
+        <h2>Kafka Producer Clients</h2>
+        <h3>주의: 초기화 구현 안함..</h3>
+        <table id="senderTable" border="2">
+            <tr>
+                <th>name</th>
+                <th>endpoint</th>
+            </tr>
+            <tr th:each="sender : ${senders}">
+                <td th:text="${sender.name}"></td>
+                <td th:text="${sender.endpoint}"></td>
+            </tr>
+        </table>
+    </div>
+    <hr/>
+    <div id="addSender">
+        <h2>Add Producer Client</h2>
+        <label for="senderName">senderName</label><input id="senderName" name="senderName" type="text">
+        <label for="endpoint">endpoint</label><input id="endpoint" name="endpoint" type="text">
+        <button onclick="addProducer()">add</button>
+    </div>
+    <hr/>
+    <div id="sendMessage">
+        <h2>Send Message</h2>
+        <div><label for="targetName">targetName</label><input id="targetName" name="targetName" type="text"></div>
+        <div><label for="topic">topic</label><input id="topic" name="topic" type="text"></div>
+        <div><label for="sendKey">key</label><input id="sendKey" name="sendKey" type="text"></div>
+        <div><label for="sendValue">value</label><textarea id="sendValue" name="sendValue" rows="15" cols="100"></textarea></div>
+        <div><button onclick="sendMessage()">SEND</button></div>
+    </div>
+</div>
+<script>
+    function addProducer() {
+        const body = {
+            senderName: document.getElementById("senderName").value,
+            endpoint: document.getElementById("endpoint").value
+        }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/add");
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function(event) {
+            const { target } = event;
+            if (target.readyState === XMLHttpRequest.DONE) {
+                const { status } = target;
+                if (status === 0 || (status >= 200 && status < 400)) {
+                    addProducerToTable(body.senderName, body.endpoint)
+                    alert("add success")
+                    console.log(target.responseText)
+                }
+                if (status >= 400) {
+                    alert("fail to add producer, message: " + JSON.parse(target.responseText).message)
+                }
+            }
+        };
+        xhr.send(JSON.stringify(body));
+    }
+
+    function sendMessage() {
+        const body = {}
+        if (!document.getElementById("targetName").value) {
+            if (document.getElementById("targetName").value !== "") {
+                body["name"] = document.getElementById("targetName").value
+            }
+        }
+        if (!document.getElementById("topic").value) {
+            if (document.getElementById("topic").value !== "") {
+                body["topic"] = document.getElementById("topic").value
+            }
+        }
+        if (!document.getElementById("sendKey").value) {
+            if (document.getElementById("sendKey").value !== "") {
+                body["key"] = document.getElementById("sendKey").value
+            }
+        }
+        if (!document.getElementById("sendValue").value) {
+            if (document.getElementById("sendValue").value) {
+                body["value"] = document.getElementById("sendValue").value
+            }
+        }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/send");
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function(event) {
+            const { target } = event;
+            if (target.readyState === XMLHttpRequest.DONE) {
+                const { status } = target;
+                if (status === 0 || (status >= 200 && status < 400)) {
+                    alert("accepted by server")
+                }
+                if (status >= 400 && status < 500) {
+                    alert("invalid params")
+                }
+                if (status >= 500) {
+                    alert("fail to add producer, message: " + JSON.parse(target.responseText).message)
+                }
+            }
+        };
+        xhr.send(JSON.stringify(body));
+    }
+
+
+    function addProducerToTable(name, endpoint) {
+        const newRow = document.getElementById("senderTable").insertRow()
+        const nameCell = newRow.insertCell(0);
+        const endpointCell = newRow.insertCell(1);
+        nameCell.innerText = name
+        endpointCell.innerText = endpoint
+    }
+</script>
+</body>
+</html>
