@@ -22,7 +22,7 @@ class ProducerManager {
 
         defaultProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         defaultProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        defaultProps[ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG] = 3000
+        defaultProps[ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG] = 31000
     }
 
     fun createProducerProperties(props: Map<String, Any>): Properties {
@@ -59,7 +59,7 @@ class ProducerManager {
         if (!senders.containsKey(name)) {
             throw RuntimeException("No Producer Found")
         }
-        val recordMetadata = this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
+        this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
         log.info("send Message >> name: {}, topic: {}, key: {}, value: {}", name, topic, key, value)
     }
 }
