@@ -1,27 +1,28 @@
 package com.ht.kafkaproducertool
 
-import org.apache.kafka.clients.producer.Callback
+import mu.KotlinLogging
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpClientErrorException.BadRequest
 import java.lang.RuntimeException
 import java.util.Properties
 import javax.annotation.PostConstruct
 
 @Component
 class ProducerManager {
+    private val log = KotlinLogging.logger {  }
     private val defaultProps = Properties()
     private val senders = HashMap<String, SenderHolder>()
 
     @PostConstruct
     fun init() {
+        log.info("init kafka Producer Manager, ver=1")
+
         defaultProps[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
         defaultProps[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
+        defaultProps[ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG] = 3000
     }
 
     fun createProducerProperties(props: Map<String, Any>): Properties {
@@ -33,6 +34,7 @@ class ProducerManager {
     }
 
     fun addSender(name: String, producerProperties: Properties) {
+        log.info("add producer client, name: {}, props: {}", name, producerProperties)
         if (this.senders.containsKey(name)) {
             throw RuntimeException("Duplicated Producer Client name")
         }
@@ -44,6 +46,7 @@ class ProducerManager {
         this.senders[name] = SenderHolder(
             producerProperties,
             KafkaProducer(producerProperties))
+        log.info("add Producer Client success, name: {}", name)
     }
 
     fun getSenders(): Map<String, SenderHolder> = this.senders
@@ -57,6 +60,7 @@ class ProducerManager {
             throw RuntimeException("No Producer Found")
         }
         val recordMetadata = this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
+        log.info("send Message >> name: {}, topic: {}, key: {}, value: {}", name, topic, key, value)
     }
 }
 
