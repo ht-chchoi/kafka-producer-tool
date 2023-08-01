@@ -15,30 +15,74 @@
                 <th>name</th>
                 <th>endpoint</th>
             </tr>
-            <tr th:each="sender : ${senders}">
-                <td th:text="${sender.name}"></td>
-                <td th:text="${sender.endpoint}"></td>
-            </tr>
         </table>
     </div>
     <hr/>
     <div id="addSender">
         <h2>Add Producer Client</h2>
-        <label for="senderName">senderName</label><input id="senderName" name="senderName" type="text">
+        <label for="senderName">clientName</label><input id="senderName" name="senderName" type="text">
         <label for="endpoint">endpoint</label><input id="endpoint" name="endpoint" type="text">
         <button onclick="addProducer()">add</button>
     </div>
     <hr/>
     <div id="sendMessage">
         <h2>Send Message</h2>
-        <div><label for="targetName">targetName</label><input id="targetName" name="targetName" type="text"></div>
-        <div><label for="topic">topic</label><input id="topic" name="topic" type="text"></div>
+        <div><label for="targetNameSelect">clientName</label><select id="targetNameSelect"></select></div>
+        <div><label for="topic">topic</label><select id="topic"></select></div>
         <div><label for="sendKey">key</label><input id="sendKey" name="sendKey" type="text"></div>
         <div><label for="sendValue">value</label><textarea id="sendValue" name="sendValue" rows="15" cols="100"></textarea></div>
         <div><button onclick="sendMessage()">SEND</button></div>
     </div>
 </div>
 <script>
+    window.onload = function () {
+        refreshSenderTable()
+        refreshTargetNameSelect()
+    }
+
+    document.getElementById("targetNameSelect")
+        .addEventListener('change', function (e) {
+            // console.log(this.value)
+            refreshTopic(this.value)
+        })
+
+    function refreshSenderTable() {
+        const senderTable = document.getElementById("senderTable")
+
+        getSenderList()
+            .then(senderList => {
+                let tableData = "<tr><th>name</th><th>endpoint</th></tr>"
+                senderList.forEach(function (sender, idx) {
+                    tableData += '<tr><td>' + sender.name + '</td><td>' + sender.endpoint + '</td></tr>'
+                })
+                senderTable.innerHTML = tableData
+            })
+    }
+
+    function refreshTargetNameSelect() {
+        const targetNameSelect = document.getElementById("targetNameSelect")
+        getSenderList()
+            .then(senderList => {
+                let innerSelect = '<option value="none" selected>선택</option>';
+                senderList.forEach(function (sender, idx) {
+                    innerSelect += '<option value="' + sender.name + '">' + sender.name + '</option>'
+                })
+                targetNameSelect.innerHTML = innerSelect
+            })
+    }
+
+    function refreshTopic(name) {
+        const topicListSelect = document.getElementById("topic")
+        this.getTopicList(name)
+            .then(topicList => {
+                let innerTopicSelect = '<option value="none" selected>선택</option>';
+                topicList.forEach(function (topic, idx) {
+                    innerTopicSelect += '<option value="' + topic + '">' + topic + '</option>'
+                })
+                topicListSelect.innerHTML = innerTopicSelect
+            })
+    }
+
     function addProducer() {
         const body = {
             senderName: document.getElementById("senderName").value,
@@ -53,9 +97,10 @@
             if (target.readyState === XMLHttpRequest.DONE) {
                 const { status } = target;
                 if (status === 0 || (status >= 200 && status < 400)) {
-                    addProducerToTable(body.senderName, body.endpoint)
                     alert("add success")
-                    console.log(target.responseText)
+                    // console.log(target.responseText)
+                    refreshSenderTable()
+                    refreshTargetNameSelect()
                 }
                 if (status >= 400) {
                     alert("fail to add producer, message: " + JSON.parse(target.responseText).message)
@@ -67,10 +112,11 @@
 
     function sendMessage() {
         let body = {}
-        if (document.getElementById("targetName").value) {
-            if (document.getElementById("targetName").value !== "") {
-                body["name"] = document.getElementById("targetName").value
-            }
+
+        const targetNameSelect = document.getElementById("targetNameSelect")
+        const option = targetNameSelect.options[targetNameSelect.selectedIndex].text;
+        if (option !== null && option !== "none") {
+            body["name"] = option
         }
         if (document.getElementById("topic").value) {
             if (document.getElementById("topic").value !== "") {
@@ -109,13 +155,53 @@
         xhr.send(JSON.stringify(body));
     }
 
+    function getSenderList() {
+        const xhr = new XMLHttpRequest();
 
-    function addProducerToTable(name, endpoint) {
-        const newRow = document.getElementById("senderTable").insertRow()
-        const nameCell = newRow.insertCell(0);
-        const endpointCell = newRow.insertCell(1);
-        nameCell.innerText = name
-        endpointCell.innerText = endpoint
+        return new Promise((resolve, reject) => {
+            xhr.open("GET", "/sender");
+            xhr.onreadystatechange = function(event) {
+                const { target } = event;
+                if (target.readyState === XMLHttpRequest.DONE) {
+                    const { status } = target;
+                    if (status === 0 || (status >= 200 && status < 400)) {
+                        console.log("GET /sender >> " + target.responseText)
+                        resolve(JSON.parse(target.responseText))
+                    }
+                    if (status >= 400) {
+                        alert("fail to refresh Senders, message: " + JSON.parse(target.responseText).message)
+                    }
+                }
+            };
+            xhr.send();
+        })
+    }
+
+    function getTopicList(name) {
+        if (name === "none") {
+            alert("target client를 선택해야합니다.")
+            return
+        }
+
+        const xhr = new XMLHttpRequest();
+
+        return new Promise((resolve, reject) => {
+            xhr.open("GET", "/topic?name=" + name);
+            xhr.onreadystatechange = function(event) {
+                const { target } = event;
+                if (target.readyState === XMLHttpRequest.DONE) {
+                    const { status } = target;
+                    if (status === 0 || (status >= 200 && status < 400)) {
+                        console.log("GET /topic >> " + target.responseText)
+                        resolve(JSON.parse(target.responseText))
+                    }
+                    if (status >= 400) {
+                        alert("fail to get topics, message: " + JSON.parse(target.responseText).message)
+                    }
+                }
+            };
+            xhr.send();
+        })
     }
 </script>
 </body>

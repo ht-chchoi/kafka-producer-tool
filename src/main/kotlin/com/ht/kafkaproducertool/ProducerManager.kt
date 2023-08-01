@@ -1,6 +1,7 @@
 package com.ht.kafkaproducertool
 
 import mu.KotlinLogging
+import org.apache.kafka.clients.admin.Admin
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -45,7 +46,8 @@ class ProducerManager {
         }
         this.senders[name] = SenderHolder(
             producerProperties,
-            KafkaProducer(producerProperties))
+            KafkaProducer(producerProperties),
+            Admin.create(producerProperties))
         log.info("add Producer Client success, name: {}", name)
     }
 
@@ -62,9 +64,14 @@ class ProducerManager {
         this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
         log.info("send Message >> name: {}, topic: {}, key: {}, value: {}", name, topic, key, value)
     }
+
+    fun getTopics(name: String): MutableSet<String> {
+        return this.senders[name]!!.kafkaAdmin.listTopics()!!.names()!!.get()
+    }
 }
 
 data class SenderHolder(
     val producerProperties: Properties,
-    val kafkaProducer: KafkaProducer<String, String>
+    val kafkaProducer: KafkaProducer<String, String>,
+    val kafkaAdmin: Admin
 )
