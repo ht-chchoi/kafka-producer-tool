@@ -142,7 +142,9 @@
             if (target.readyState === XMLHttpRequest.DONE) {
                 const { status } = target;
                 if (status === 0 || (status >= 200 && status < 400)) {
-                    alert("accepted by server")
+                    const responseJson = JSON.parse(target.responseText)
+                    console.log(responseJson)
+                    alert("accepted by server, topic: " + responseJson.topic + ", partition: " + responseJson.partition)
                 }
                 if (status >= 400 && status < 500) {
                     alert("invalid params")

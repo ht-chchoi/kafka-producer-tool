@@ -5,6 +5,7 @@ import org.apache.kafka.clients.admin.Admin
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.stereotype.Component
 import java.lang.RuntimeException
@@ -53,7 +54,7 @@ class ProducerManager {
 
     fun getSenders(): Map<String, SenderHolder> = this.senders
 
-    fun sendMessage(name: String, topic: String, key: String?, value: String) {
+    fun sendMessage(name: String, topic: String, key: String?, value: String): RecordMetadata? {
         val producerRecord =
             if (key == null) ProducerRecord(topic, value)
             else ProducerRecord(topic, key, value)
@@ -61,8 +62,9 @@ class ProducerManager {
         if (!senders.containsKey(name)) {
             throw RuntimeException("No Producer Found")
         }
-        this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
+        val recordMetaData = this.senders[name]?.kafkaProducer?.send(producerRecord)?.get()
         log.info("send Message >> name: {}, topic: {}, key: {}, value: {}", name, topic, key, value)
+        return recordMetaData
     }
 
     fun getTopics(name: String): MutableSet<String> {
