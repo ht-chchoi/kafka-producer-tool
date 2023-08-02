@@ -30,6 +30,7 @@
         <div><label for="targetNameSelect">clientName</label><select id="targetNameSelect"></select></div>
         <div><label for="topic">topic</label><select id="topic"></select></div>
         <div><label for="sendKey">key</label><input id="sendKey" name="sendKey" type="text"></div>
+        <div><button onclick="beautifyJson()">BeautifyJSON</button><button onclick="simplifyJson()">SimplifyJSON</button></div>
         <div><label for="sendValue">value</label><textarea id="sendValue" name="sendValue" rows="15" cols="100"></textarea></div>
         <div><button onclick="sendMessage()">SEND</button></div>
     </div>
@@ -204,6 +205,16 @@
             };
             xhr.send();
         })
+    }
+
+    function beautifyJson() {
+        let sendValue = document.getElementById("sendValue")
+        sendValue.value = JSON.stringify(JSON.parse(sendValue.value), null, 4)
+    }
+
+    function simplifyJson() {
+        let sendValue = document.getElementById("sendValue")
+        sendValue.value = JSON.stringify(JSON.parse(sendValue.value))
     }
 </script>
 </body>
